@@ -1,0 +1,70 @@
+name: "xplose-topo"
+
+topology:
+  kinds:
+    srl:
+      image: ghcr.io/nokia/srlinux:23.10.1
+      type: ixrd2l
+    linux:
+      image: ghcr.io/srl-labs/network-multitool:latest
+  nodes:
+    dc1r1:
+      kind: srl
+      startup-config: config/dc1r1/srl.cfg
+    dc1r2:
+      kind: srl
+      startup-config: config/dc1r2/srl.cfg
+    dc2r1:
+      kind: srl
+      startup-config: config/dc2r1/srl.cfg
+    dc2r2:
+      kind: srl
+      startup-config: config/dc2r2/srl.cfg
+    transit:
+      kind: srl
+      startup-config: config/transit/srl.cfg
+    client11:
+      kind: linux
+      binds:  
+        - config/client11/bonding.sh:/bonding.sh
+      exec:
+        - bash /bonding.sh
+    client12:
+      kind: linux
+      binds:  
+        - config/client12/bonding.sh:/bonding.sh
+      exec:
+        - bash /bonding.sh
+    client21:
+      kind: linux
+      binds:  
+        - config/client21/bonding.sh:/bonding.sh
+      exec:
+        - bash /bonding.sh
+    client22:
+      kind: linux
+      binds:  
+        - config/client22/bonding.sh:/bonding.sh
+      exec:
+        - bash /bonding.sh
+  links:
+    - endpoints: ["dc1r1:e1-1", "dc1r2:e1-1"]
+    - endpoints: ["dc1r1:e1-2", "dc1r2:e1-2"]
+
+    - endpoints: ["dc2r1:e1-1", "dc2r2:e1-1"]
+    - endpoints: ["dc2r1:e1-2", "dc2r2:e1-2"]
+
+    # Transit
+    - endpoints: ["dc1r1:e1-3", "transit:e1-1"]
+    - endpoints: ["dc2r1:e1-3", "transit:e1-2"]
+    # Peering
+    - endpoints: ["dc1r2:e1-3", "dc2r2:e1-3"]
+    # Clients
+    - endpoints: ["client11:eth1", "dc1r1:e1-4"]
+    - endpoints: ["client11:eth2", "dc1r2:e1-4"]
+    - endpoints: ["client12:eth1", "dc1r1:e1-5"]
+    - endpoints: ["client12:eth2", "dc1r2:e1-5"]
+    - endpoints: ["client21:eth1", "dc2r1:e1-4"]
+    - endpoints: ["client21:eth2", "dc2r2:e1-4"]
+    - endpoints: ["client22:eth1", "dc2r1:e1-5"]
+    - endpoints: ["client22:eth2", "dc2r2:e1-5"]
